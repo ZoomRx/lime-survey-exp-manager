@@ -15,6 +15,7 @@ import { EventEmitter } from 'events';
 import { isEmpty } from '../utility/utils'
 
 import CodeMirror from '../codemirror-5.43.0/lib/codemirror.js';
+import '../codemirror-5.43.0/lib/codemirror.css';
 import '../codemirror-5.43.0/mode/javascript/javascript.js';
 import '../codemirror-5.43.0/lib/codemirror.js';
 import '../codemirror-5.43.0/addon/edit/matchbrackets.js';
@@ -62,7 +63,7 @@ function createExpressionManager({placeholder, readOnly, identifiers, expFunctio
         identifiers = TOKENS;
     }
     if (isEmpty(suffixes)) {
-        identifiers = SUFFIXES;
+        suffixes = SUFFIXES;
     }
     if (readOnly === undefined) {
         readOnly = false;
@@ -81,6 +82,7 @@ function createExpressionManager({placeholder, readOnly, identifiers, expFunctio
             this.currentSuggestions = [];
             this.identifiers = identifiers;
             this.suffixes = suffixes;
+            this.expFunctions = expFunctions;
             let codeMirror = CodeMirror.fromTextArea(textBox, {
                 mode: "multiText",
                 viewportMargin: Infinity,
@@ -171,7 +173,7 @@ function createExpressionManager({placeholder, readOnly, identifiers, expFunctio
             });
             results = evaluateExpression(expression, validIdentifiers, this.suffixes);
             let options = {
-                bufferHighlight: results.length > 1300,
+                bufferHighlight: results.length > 1000,
             }
             helpFor = ParseAndHighlight(expression, results, codeMirror, options);
             

@@ -247,7 +247,7 @@ export default function ParseAndHighlight(exp, results, codeMirror, options/*, c
             `_${Identifier}_${Operator}_${Literal}`, 
             `_${Identifier}_${Suffix}_${Operator}_${Literal}`,
         ]
-        return validExpressions.any((validExpression) => expression.endsWith(validExpression));
+        return validExpressions.some((validExpression) => expression.endsWith(validExpression));
     }
     return findLastFunction(fs) || last;
 }
