@@ -52,7 +52,8 @@ function searchSuggestions(baseList = [], searchTerm, results) {
         }
     });
 }
-function createExpressionManager({placeholder, readOnly, identifiers, expFunctions, textBox, suffixes}) {
+function createExpressionManager(config) {
+    let { placeholder, readOnly, identifiers, expFunctions, textBox, suffixes } = config;
     if (!textBox) {
         return {};
     } 

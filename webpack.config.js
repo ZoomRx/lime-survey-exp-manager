@@ -8,11 +8,6 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
     libraryTarget: 'umd',
   },
-  performance: {
-    hints: 'warning',
-    maxEntrypointSize: 244 * 1024,
-    maxAssetSize: 244 * 1024,
-  },
   module: {
     rules: [
       {
