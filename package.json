@@ -12,6 +12,10 @@
   "engines": {
     "node": "10.x"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ZoomRx/survey-exp-manager"
+  },
   "devDependencies": {
     "acorn-loose": "^6.0.0",
     "acorn-walk": "^6.1.1",
