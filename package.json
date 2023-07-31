@@ -1,6 +1,6 @@
 {
-  "name": "survey-exp-manager",
-  "version": "1.0.0",
+  "name": "lime-survey-exp-manager",
+  "version": "1.0.1",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
@@ -14,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ZoomRx/survey-exp-manager"
+    "url": "https://github.com/ZoomRx/lime-survey-exp-manager"
   },
   "devDependencies": {
     "acorn-loose": "^6.0.0",
