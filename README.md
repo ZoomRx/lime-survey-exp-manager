@@ -1,10 +1,10 @@
-# Survey Expression Manager Node Module
-The survey Expression Manager is a js module that provides functionality for parsing and highlighting expressions in a text area. It can be used to provide suggestions to users while they are typing identifiers, function names, and suffixes in an expression.
+# Lime Survey Expression Manager Node Module
+The lime survey Expression Manager is a js module that provides functionality for parsing and highlighting expressions in a text area. It can be used to provide suggestions to users while they are typing identifiers, function names, and suffixes in an expression.
 
 ## Installation
   To use the Expression Manager in your project, you need to install it using npm. Open your terminal or command prompt and run the following command:
 ```bash
-  npm install survey-exp-manager
+  npm install lime-survey-exp-manager
 ```
 
 ## Usage
