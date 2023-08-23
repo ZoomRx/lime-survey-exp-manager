@@ -22,6 +22,8 @@ The lime survey Expression Manager is a js module that provides functionality fo
         &emsp;&emsp;5. returnType (*) - Type of the value the variable can have during runtime  
         &emsp;&emsp;6. customHTML (String) - Custom text to be shown instead of the name   
   **expFunctions (optional):** Functions to be supported inside the autocomplete field  
+  **identifiersPattern:** Match pattern for validating identifers  
+         &emsp;&emsp; 'TOKEN|USER_ATTR|USER'
   **textBox:** The text area or text editor element that you want to attach the Expression Manager to.  
   **suffixes (optional):** These will be displayed in the suggestion when the user types a "."
       Anything that the user types after the "." will be considered a suffix and the corresponding list 

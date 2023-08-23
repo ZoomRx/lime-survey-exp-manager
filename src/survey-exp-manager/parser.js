@@ -1,6 +1,7 @@
 import * as Parser from 'acorn-loose/dist/acorn-loose.js';
 
 import * as walk from 'acorn-walk';
+import { isEmpty } from '../../utility/utils'
 
 import {
     NUMBER,
@@ -63,7 +64,6 @@ const ReservedWords = {
     'yield': '$ield',
 };
 
-const TokenPattern = /^(TOKEN|USER_ATTR|USER)\$/i;
 
 const OperatorMap = {
     'eq': '==',
@@ -148,7 +148,7 @@ function isValidAdvQuotaSuffix(name, suffixes) {
 }
 
 /* Functions, operators, suffix, tokens, identifiers, litrals */
-export default function evaluateExpression(expr, validIdentifiers, suffixes) {
+export default function evaluateExpression(expr, validIdentifiers, suffixes, identifiersPattern) {
     let keepOrginalExpr = expr;
     class ASTnode {
         constructor(node, error = null) {
@@ -193,8 +193,8 @@ export default function evaluateExpression(expr, validIdentifiers, suffixes) {
     function validateIdentifier(node, ancestors, result, validateReturnType) {
         let name = node.name;
 
-        if (TokenPattern.test(name)) {
-            name = name.replace(TokenPattern, '$1:');
+        if (!isEmpty(identifiersPattern) && tokenPattern.test(name)) {
+            name = name.replace(tokenPattern, '$1:');
             if (!isValidVariable(name)) {
                 result.push(new ASTnode({ ...node, name: name }, ERROR_TEXTS.UNDEFINED_IDENTIFIER));
                 return;
@@ -513,8 +513,17 @@ export default function evaluateExpression(expr, validIdentifiers, suffixes) {
         return validIdentifiers[name] && validIdentifiers[name].returnType;
     }
 
+    function createTokenPattern(pattern) {
+        return new RegExp(`^(${pattern})\\$`, 'i');
+    }
+
     let result = [];
-    expr = expr.replace(/\b(TOKEN|USER_ATTR|USER):/gi, '$1$');
+    let tokenPattern = '';
+    if (!isEmpty(identifiersPattern)) {
+        tokenPattern = createTokenPattern(identifiersPattern);
+        let tokenExp = new RegExp(`\\b(${identifiersPattern}):`, 'gi');
+        expr = expr.replace(tokenExp, '$1$');
+    }
     expr = expr.replace(/\b(if\()/g, 'fi(');
     
     let op = new RegExp(OperatorMapPattern, 'gi');

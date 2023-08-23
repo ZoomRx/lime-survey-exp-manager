@@ -53,7 +53,7 @@ function searchSuggestions(baseList = [], searchTerm, results) {
     });
 }
 function createExpressionManager(config) {
-    let { placeholder, readOnly, identifiers, expFunctions, textBox, suffixes } = config;
+    let { placeholder, readOnly, identifiers, expFunctions, textBox, suffixes, identifiersPattern } = config;
     if (!textBox) {
         return {};
     } 
@@ -84,6 +84,7 @@ function createExpressionManager(config) {
             this.identifiers = identifiers;
             this.suffixes = suffixes;
             this.expFunctions = expFunctions;
+            this.identifiersPattern = identifiersPattern;
             let codeMirror = CodeMirror.fromTextArea(textBox, {
                 mode: "multiText",
                 viewportMargin: Infinity,
@@ -172,7 +173,7 @@ function createExpressionManager(config) {
                     validIdentifiers[name] = identifier;
                 }
             });
-            results = evaluateExpression(expression, validIdentifiers, this.suffixes);
+            results = evaluateExpression(expression, validIdentifiers, this.suffixes, this.identifiersPattern);
             let options = {
                 bufferHighlight: results.length > 1000,
             }
