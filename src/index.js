@@ -156,7 +156,9 @@ function createExpressionManager(config) {
             this.emit('onBlur', expression);
         }
         updateReadOnly(readOnly) {
-            this.codeMirror.doc.cm.toTextArea();
+            if (this.codeMirror && document.contains(this.codeMirror.doc.cm.getTextArea())) {
+                this.codeMirror.doc.cm.toTextArea();
+            }
             this.readOnly = readOnly;
             this.codeMirror.setOption('readOnly', this.readOnly);
         }
