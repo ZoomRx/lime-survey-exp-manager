@@ -19,7 +19,8 @@ export const ThisExpression = 'ThisExpression';
 export const MemberKeyword = 'MemberKeyword';
 export const SubSelector = 'SubSelector';
 export const AdvQuota = 'AdvQuota';
-
+export const SubSelectorSq = 'SubSelectorSq';
+export const SuffixSq = 'SuffixSq';
 
 export const ERROR_TEXTS = {
     INVALID_EXPRESSION: 'Invalid Expression.',

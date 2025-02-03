@@ -9,7 +9,9 @@ import {
     Literal,
     EXP_FUNCTIONS,
     TOKENS,
-    SUFFIXES
+    SUFFIXES,
+    SubSelectorSq,
+    SuffixSq
   } from '../src/survey-exp-manager/constants';
 import { EventEmitter } from 'events';
 import { isEmpty } from '../utility/utils'
@@ -186,6 +188,8 @@ function createExpressionManager(config) {
                 helpFor = { ...helpFor, ...this.expFunctions[helpFor.name] };
             } else if (helpFor && helpFor.type === Identifier) {
                 helpFor = { ...helpFor, ...validIdentifiers[helpFor.name] };
+            } else if (helpFor && helpFor.type === SubSelectorSq) {
+                helpFor = this.getMatchingSubQuestions(helpFor);
             }
             this.isLastSuffixShown = helpFor && helpFor.isLastSuffixShown;
             this.lastIdentifier = helpFor && helpFor.lastIdentifier;
@@ -269,6 +273,11 @@ function createExpressionManager(config) {
                     break;
                 case Literal:
                     searchRhsSuggestions(searchTerm);
+                    break;
+                case SuffixSq:
+                    let suffix = { 'sq_' : SUFFIXES['sq_'] }
+                    searchSuggestions(suffix, searchTerm, results);
+                    break;
             }
 
             const compareNames = (a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase());
@@ -325,6 +334,42 @@ function createExpressionManager(config) {
             codeMirror.focus();
             this.activeSuggestionIndex = 0;
             this.emit('updateSuggestionIndex', 0);
+        }
+        escapeRegExp(str) {
+            return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        }
+        getMatchingSubQuestions(helpFor) {
+            let validIdentifiers = this.identifiers;
+            let parentQcode = helpFor.parentQcode;
+            let subSelector = helpFor.name;
+            let subPattern = subSelector.replace(/^sq_/, '');
+            let pattern = new RegExp(this.escapeRegExp(subPattern));
+            let subQcodes = [];
+
+            if (!subPattern.trim().length) {
+                return helpFor;
+            }
+
+            subQcodes = Object.keys(validIdentifiers).filter(identifier => {
+                if (identifier === parentQcode || identifier === `that.${parentQcode}`) {
+                    return false;
+                }
+                
+                let match = identifier.match(new RegExp(`^${this.escapeRegExp(parentQcode)}_(.*)$`));
+
+                if (!match) {
+                    return false;
+                }
+
+                let remainingPart = match[1]; // Extract the portion after `${parentQcode}_`
+                let attrList = validIdentifiers[identifier].attributeList;
+
+                return attrList && attrList.qCode === parentQcode && pattern.test(remainingPart);
+            });
+
+            helpFor.subQcodes = subQcodes.join(', ');
+
+            return helpFor;
         }
     }
     let expReference = new expressionManager();
