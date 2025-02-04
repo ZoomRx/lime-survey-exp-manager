@@ -60,9 +60,6 @@ export const TOKENS = {
     'TOKEN:WAVE_SCREENED_IN': {
         description: 'Returns boolean(true/false) based on whether the user has wave screened in or not',
     },
-    'TOKEN:LOOP_SKIP_QUESTION': {
-        description: 'Returns boolean(true/false) based on whether the user is looping in IR survey',
-    },
     'TOKEN:WAVE_COMPLETED_COUNT': {
         description: 'Returns the wave completion count',
     },
