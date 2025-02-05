@@ -44,7 +44,7 @@ function searchSuggestions(baseList = [], searchTerm, results) {
             // Find if the content in displayFor is present in the searchTerm and has a straight match
             customMatch = searchTerm.startsWith(displayFor) && nameMatches,
             // Find if the content of hideFor is present in the searchTerm
-            forceHide = searchTerm.startsWith(hideFor),
+            forceHide = searchTerm.startsWith(hideFor) || hideFor === `that.${searchTerm}`,
             // Check if the item is already fully typed by user
             itemCompleted = (nameLC + (item.appendRight ? item.appendRight : '')) === searchTerm;
 
@@ -189,7 +189,9 @@ function createExpressionManager(config) {
             } else if (helpFor && helpFor.type === Identifier) {
                 helpFor = { ...helpFor, ...validIdentifiers[helpFor.name] };
             } else if (helpFor && helpFor.type === SubSelectorSq) {
-                helpFor = this.getMatchingSubQuestions(helpFor);
+                let matchingPatterns = getMatchingPatterns(this.identifiers, helpFor.parentQcode, helpFor.name);
+
+                helpFor.subQcodes = matchingPatterns.join(', ')
             }
             this.isLastSuffixShown = helpFor && helpFor.isLastSuffixShown;
             this.lastIdentifier = helpFor && helpFor.lastIdentifier;
@@ -335,46 +337,44 @@ function createExpressionManager(config) {
             this.activeSuggestionIndex = 0;
             this.emit('updateSuggestionIndex', 0);
         }
-        escapeRegExp(str) {
-            return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-        }
-        getMatchingSubQuestions(helpFor) {
-            let validIdentifiers = this.identifiers;
-            let parentQcode = helpFor.parentQcode;
-            let subSelector = helpFor.name;
-            let subPattern = subSelector.replace(/^sq_/, '');
-            let pattern = new RegExp(this.escapeRegExp(subPattern));
-            let subQcodes = [];
-
-            if (!subPattern.trim().length) {
-                return helpFor;
-            }
-
-            subQcodes = Object.keys(validIdentifiers).filter(identifier => {
-                if (identifier === parentQcode || identifier === `that.${parentQcode}`) {
-                    return false;
-                }
-                
-                let match = identifier.match(new RegExp(`^${this.escapeRegExp(parentQcode)}_(.*)$`));
-
-                if (!match) {
-                    return false;
-                }
-
-                let remainingPart = match[1]; // Extract the portion after `${parentQcode}_`
-                let attrList = validIdentifiers[identifier].attributeList;
-
-                return attrList && attrList.qCode === parentQcode && pattern.test(remainingPart);
-            });
-
-            helpFor.subQcodes = subQcodes.join(', ');
-
-            return helpFor;
-        }
     }
     let expReference = new expressionManager();
     return expReference;
 }
 
+function escapeRegExp(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function getMatchingPatterns(validIdentifiers, qCode, subSelector) {
+    let subPattern = subSelector.replace(/^sq_/, '');
+    let pattern = new RegExp(escapeRegExp(subPattern));
+    let matches = [];
+
+    if (!subPattern.trim().length) {
+        return [];
+    }
+
+    matches = Object.keys(validIdentifiers).filter(identifier => {
+        if (identifier === qCode || identifier === `that.${qCode}` || validIdentifiers[identifier].appendRight) {
+            return false;
+        }
+        
+        let match = identifier.match(new RegExp(`^${escapeRegExp(qCode)}_(.*)$`));
+
+        if (!match) {
+            return false;
+        }
+
+        let remainingPart = match[1]; // Extract the portion after `${qCode}_`
+        let attrList = validIdentifiers[identifier].attributeList;
+
+        return attrList && attrList.qCode === qCode && pattern.test(remainingPart);
+    });
+
+    return matches;
+}
+
 export { createExpressionManager };
+export { getMatchingPatterns };
 export * from './survey-exp-manager/constants';
