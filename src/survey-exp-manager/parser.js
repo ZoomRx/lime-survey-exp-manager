@@ -25,7 +25,9 @@ import {
     ARR_STR,
     BOOLEAN,
     IGNORE,
-    AdvQuota
+    AdvQuota,
+    SubSelectorSq,
+    SuffixSq
 } from './constants';
 
 const ReservedWords = {
@@ -310,12 +312,12 @@ export default function evaluateExpression(expr, validIdentifiers, suffixes, ide
                 returnType = getVariableType(varName);
             }
 
-            if (ancestor.type !== CallExpression && (returnType === ARR_NUM || returnType === ARR_STR)) {
+            if (root != 'that' && ancestor.type !== CallExpression && (returnType === ARR_NUM || returnType === ARR_STR)) {
                 //Identifier return type should not be an array;
                 result.push(new ASTnode({ ...node, name: props.map(p => p.name).join('.'), type: Identifier }, ERROR_TEXTS.INVALID_IDENTIFIER));
                 return;
             }
-            res.push(new ASTnode({ ...memberRoot, type: MemberKeyword }));    
+            res.push(new ASTnode({ ...memberRoot, type: MemberKeyword }));
         } else {
             result.push(new ASTnode({ ...node, type: Identifier, name: props.map(p => p.name).join('.') }, ERROR_TEXTS.INVALID_IDENTIFIER));
             return;
@@ -331,7 +333,21 @@ export default function evaluateExpression(expr, validIdentifiers, suffixes, ide
                 //Have subselector
                 prop = props[index++];
                 if (isValidSubSelector(prop.name)) {
-                    res.push(new ASTnode({ ...prop, type: SubSelector }));
+                    let subSelectorNode = new ASTnode({ ...prop, type: SubSelector });
+                    let parentCode = null;
+
+                    if (root === 'that' && node && node.object && node.object.property) {
+                        parentCode = node.object.property.name;
+                    } else if (node && node.object && node.object.name) {
+                        parentCode = node.object.name;
+                    }
+                
+                    if (parentCode && prop.name.includes('sq_')) {
+                        subSelectorNode['parentCode'] = parentCode;
+                        subSelectorNode.type = SubSelectorSq;
+                    }
+
+                    res.push(subSelectorNode);
                 } else {
                     res.push(new ASTnode({ ...prop, type: SubSelector }, ERROR_TEXTS.INVALID_SUBSELECTOR));
                 }
@@ -351,12 +367,57 @@ export default function evaluateExpression(expr, validIdentifiers, suffixes, ide
                 if (isValidSuffix(prop.name)) {
                     suffix = prop;
                     res.push(new ASTnode({ ...prop, type: Suffix }));
-                } else {
-                    if (isValidSubSelector(prop.name)) {
-                        res.push(new ASTnode({ ...prop, type: SubSelector }));
-                    } else  {
-                        res.push(new ASTnode({ ...prop, type: Suffix }, ERROR_TEXTS.INVALID_SUFFIX));
+                } else if (isValidSubSelector(prop.name)) {
+                    let subSelectorNode = new ASTnode({ ...prop, type: SubSelector });
+                    let parentCode = null;
+
+                    // Determine parentCode based on root and node structure
+                    // node = {
+                    //     "type": "MemberExpression",
+                    //     "start": 0,
+                    //     "end": 11,
+                    //     "object": {
+                    //         "type": "MemberExpression",
+                    //         "start": 0,
+                    //         "end": 7,
+                    //         "object": {
+                    //             "type": "Identifier",
+                    //             "start": 0,
+                    //             "end": 4,
+                    //             "name": "that"
+                    //         },
+                    //         "property": {
+                    //             "type": "Identifier",
+                    //             "start": 5,
+                    //             "end": 7,
+                    //             "name": "Q1"
+                    //         },
+                    //         "computed": false
+                    //     },
+                    //     "property": {
+                    //         "type": "Identifier",
+                    //         "start": 8,
+                    //         "end": 11,
+                    //         "name": "sq_"
+                    //     },
+                    //     "computed": false
+                    // }
+                    if (root === 'that' && node && node.object && node.object.property) {
+                        parentCode = node.object.property.name;
+                    } else if (node && node.object && node.object.name) {
+                        parentCode = node.object.name;
                     }
+                
+                    if (parentCode && prop.name.includes('sq_')) {
+                        subSelectorNode['parentCode'] = parentCode;
+                        subSelectorNode.type = SubSelectorSq;
+                    }
+
+                    res.push(subSelectorNode);
+                } else if (root === 'that') {
+                    res.push(new ASTnode({ ...prop, type: SuffixSq }, ERROR_TEXTS.INVALID_SUFFIX));
+                } else {
+                    res.push(new ASTnode({ ...prop, type: Suffix }, ERROR_TEXTS.INVALID_SUFFIX));
                 }
             }
         }

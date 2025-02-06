@@ -9,7 +9,9 @@ import {
     Literal,
     EXP_FUNCTIONS,
     TOKENS,
-    SUFFIXES
+    SUFFIXES,
+    SubSelectorSq,
+    SuffixSq
   } from '../src/survey-exp-manager/constants';
 import { EventEmitter } from 'events';
 import { isEmpty } from '../utility/utils'
@@ -42,7 +44,7 @@ function searchSuggestions(baseList = [], searchTerm, results) {
             // Find if the content in displayFor is present in the searchTerm and has a straight match
             customMatch = searchTerm.startsWith(displayFor) && nameMatches,
             // Find if the content of hideFor is present in the searchTerm
-            forceHide = searchTerm.startsWith(hideFor),
+            forceHide = searchTerm.startsWith(hideFor) || hideFor === `that.${searchTerm}`,
             // Check if the item is already fully typed by user
             itemCompleted = (nameLC + (item.appendRight ? item.appendRight : '')) === searchTerm;
 
@@ -186,6 +188,10 @@ function createExpressionManager(config) {
                 helpFor = { ...helpFor, ...this.expFunctions[helpFor.name] };
             } else if (helpFor && helpFor.type === Identifier) {
                 helpFor = { ...helpFor, ...validIdentifiers[helpFor.name] };
+            } else if (helpFor && helpFor.type === SubSelectorSq) {
+                let matchingPatterns = getMatchingPatterns(this.identifiers, helpFor.parentCode, helpFor.name);
+
+                helpFor.subSelectorCodes = matchingPatterns.join(', ')
             }
             this.isLastSuffixShown = helpFor && helpFor.isLastSuffixShown;
             this.lastIdentifier = helpFor && helpFor.lastIdentifier;
@@ -269,6 +275,11 @@ function createExpressionManager(config) {
                     break;
                 case Literal:
                     searchRhsSuggestions(searchTerm);
+                    break;
+                case SuffixSq:
+                    let suffix = { 'sq_' : SUFFIXES['sq_'] }
+                    searchSuggestions(suffix, searchTerm, results);
+                    break;
             }
 
             const compareNames = (a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase());
@@ -331,5 +342,38 @@ function createExpressionManager(config) {
     return expReference;
 }
 
-export { createExpressionManager };
+function escapeRegExp(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function getMatchingPatterns(validIdentifiers, qCode, subSelector) {
+    let subPattern = subSelector.replace(/^sq_/, '');
+    let pattern = new RegExp(escapeRegExp(subPattern));
+    let matches = [];
+
+    if (!subPattern.trim().length) {
+        return [];
+    }
+
+    matches = Object.keys(validIdentifiers).filter(identifier => {
+        if (identifier === qCode || identifier === `that.${qCode}` || validIdentifiers[identifier].appendRight) {
+            return false;
+        }
+        
+        let match = identifier.match(new RegExp(`^${escapeRegExp(qCode)}_(.*)$`));
+
+        if (!match) {
+            return false;
+        }
+
+        let remainingPart = match[1]; // Extract the portion after `${qCode}_`
+        let attrList = validIdentifiers[identifier].attributeList;
+
+        return attrList && attrList.qCode === qCode && pattern.test(remainingPart);
+    });
+
+    return matches;
+}
+
+export { createExpressionManager, getMatchingPatterns };
 export * from './survey-exp-manager/constants';
