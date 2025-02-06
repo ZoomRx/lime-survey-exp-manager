@@ -334,16 +334,16 @@ export default function evaluateExpression(expr, validIdentifiers, suffixes, ide
                 prop = props[index++];
                 if (isValidSubSelector(prop.name)) {
                     let subSelectorNode = new ASTnode({ ...prop, type: SubSelector });
-                    let parentQcode = null;
+                    let parentCode = null;
 
                     if (root === 'that' && node && node.object && node.object.property) {
-                        parentQcode = node.object.property.name;
+                        parentCode = node.object.property.name;
                     } else if (node && node.object && node.object.name) {
-                        parentQcode = node.object.name;
+                        parentCode = node.object.name;
                     }
                 
-                    if (parentQcode && prop.name.includes('sq_')) {
-                        subSelectorNode['parentQcode'] = parentQcode;
+                    if (parentCode && prop.name.includes('sq_')) {
+                        subSelectorNode['parentCode'] = parentCode;
                         subSelectorNode.type = SubSelectorSq;
                     }
 
@@ -369,9 +369,9 @@ export default function evaluateExpression(expr, validIdentifiers, suffixes, ide
                     res.push(new ASTnode({ ...prop, type: Suffix }));
                 } else if (isValidSubSelector(prop.name)) {
                     let subSelectorNode = new ASTnode({ ...prop, type: SubSelector });
-                    let parentQcode = null;
+                    let parentCode = null;
 
-                    // Determine parentQcode based on root and node structure
+                    // Determine parentCode based on root and node structure
                     // node = {
                     //     "type": "MemberExpression",
                     //     "start": 0,
@@ -403,13 +403,13 @@ export default function evaluateExpression(expr, validIdentifiers, suffixes, ide
                     //     "computed": false
                     // }
                     if (root === 'that' && node && node.object && node.object.property) {
-                        parentQcode = node.object.property.name;
+                        parentCode = node.object.property.name;
                     } else if (node && node.object && node.object.name) {
-                        parentQcode = node.object.name;
+                        parentCode = node.object.name;
                     }
                 
-                    if (parentQcode && prop.name.includes('sq_')) {
-                        subSelectorNode['parentQcode'] = parentQcode;
+                    if (parentCode && prop.name.includes('sq_')) {
+                        subSelectorNode['parentCode'] = parentCode;
                         subSelectorNode.type = SubSelectorSq;
                     }
 

@@ -189,9 +189,9 @@ function createExpressionManager(config) {
             } else if (helpFor && helpFor.type === Identifier) {
                 helpFor = { ...helpFor, ...validIdentifiers[helpFor.name] };
             } else if (helpFor && helpFor.type === SubSelectorSq) {
-                let matchingPatterns = getMatchingPatterns(this.identifiers, helpFor.parentQcode, helpFor.name);
+                let matchingPatterns = getMatchingPatterns(this.identifiers, helpFor.parentCode, helpFor.name);
 
-                helpFor.subQcodes = matchingPatterns.join(', ')
+                helpFor.subSelectorCodes = matchingPatterns.join(', ')
             }
             this.isLastSuffixShown = helpFor && helpFor.isLastSuffixShown;
             this.lastIdentifier = helpFor && helpFor.lastIdentifier;
@@ -375,6 +375,5 @@ function getMatchingPatterns(validIdentifiers, qCode, subSelector) {
     return matches;
 }
 
-export { createExpressionManager };
-export { getMatchingPatterns };
+export { createExpressionManager, getMatchingPatterns };
 export * from './survey-exp-manager/constants';
