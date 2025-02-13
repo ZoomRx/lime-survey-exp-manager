@@ -312,7 +312,7 @@ export default function evaluateExpression(expr, validIdentifiers, suffixes, ide
                 returnType = getVariableType(varName);
             }
 
-            if (root != 'that' && ancestor.type !== CallExpression && (returnType === ARR_NUM || returnType === ARR_STR)) {
+            if ((root != 'that' && root != 'self') && ancestor.type !== CallExpression && (returnType === ARR_NUM || returnType === ARR_STR)) {
                 //Identifier return type should not be an array;
                 result.push(new ASTnode({ ...node, name: props.map(p => p.name).join('.'), type: Identifier }, ERROR_TEXTS.INVALID_IDENTIFIER));
                 return;
@@ -414,7 +414,7 @@ export default function evaluateExpression(expr, validIdentifiers, suffixes, ide
                     }
 
                     res.push(subSelectorNode);
-                } else if (root === 'that') {
+                } else if (root === 'that' || root === 'self') {
                     res.push(new ASTnode({ ...prop, type: SuffixSq }, ERROR_TEXTS.INVALID_SUFFIX));
                 } else {
                     res.push(new ASTnode({ ...prop, type: Suffix }, ERROR_TEXTS.INVALID_SUFFIX));

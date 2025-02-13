@@ -189,9 +189,15 @@ function createExpressionManager(config) {
             } else if (helpFor && helpFor.type === Identifier) {
                 helpFor = { ...helpFor, ...validIdentifiers[helpFor.name] };
             } else if (helpFor && helpFor.type === SubSelectorSq) {
-                let matchingPatterns = getMatchingPatterns(this.identifiers, helpFor.parentCode, helpFor.name);
+                if (helpFor.parentCode === 'self') {
+                    helpFor.parentCode = this.identifiers.self.parentCode || null;
+                }
 
-                helpFor.subSelectorCodes = matchingPatterns.join(', ')
+                if (helpFor.parentCode) {
+                    let matchingPatterns = getMatchingPatterns(this.identifiers, helpFor.parentCode, helpFor.name);
+
+                    helpFor.subSelectorCodes = matchingPatterns.join(', ')
+                }
             }
             this.isLastSuffixShown = helpFor && helpFor.isLastSuffixShown;
             this.lastIdentifier = helpFor && helpFor.lastIdentifier;
