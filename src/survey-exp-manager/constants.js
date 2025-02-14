@@ -19,7 +19,8 @@ export const ThisExpression = 'ThisExpression';
 export const MemberKeyword = 'MemberKeyword';
 export const SubSelector = 'SubSelector';
 export const AdvQuota = 'AdvQuota';
-
+export const SubSelectorSq = 'SubSelectorSq';
+export const SuffixSq = 'SuffixSq';
 
 export const ERROR_TEXTS = {
     INVALID_EXPRESSION: 'Invalid Expression.',
@@ -58,9 +59,6 @@ export const TOKENS = {
     },
     'TOKEN:WAVE_SCREENED_IN': {
         description: 'Returns boolean(true/false) based on whether the user has wave screened in or not',
-    },
-    'TOKEN:LOOP_SKIP_QUESTION': {
-        description: 'Returns boolean(true/false) based on whether the user is looping in IR survey',
     },
     'TOKEN:WAVE_COMPLETED_COUNT': {
         description: 'Returns the wave completion count',
