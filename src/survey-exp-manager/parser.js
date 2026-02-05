@@ -115,8 +115,8 @@ function isValidFunction(name) {
 function getReturnType(name) {
     if(EXP_FUNCTIONS[name]) {
         return EXP_FUNCTIONS[name].returnType;
-    } else {
-        ADV_QUOTA_EXP_FUNS[name].returnType;
+    } else if (ADV_QUOTA_EXP_FUNS[name]) {
+        return ADV_QUOTA_EXP_FUNS[name].returnType;
     }
 }
 
