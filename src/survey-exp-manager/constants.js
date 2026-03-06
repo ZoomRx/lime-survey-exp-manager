@@ -51,6 +51,9 @@ export const TOKENS = {
     'USER:PROFESSION_TYPE': {
         description: `User's profession type`,
     },
+    'USER:INTERNAL_ROLE': {
+      description: `User's internal role`,
+    },
     'TOKEN:IS_WEB': {
         description: 'Returns boolean(true/false) based on whether the user is web user or not',
     },
