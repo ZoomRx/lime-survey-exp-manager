@@ -28,3 +28,14 @@ export function isEmpty(value = null) {
         return false;
     }
 }
+
+/**
+ * Coerce a value that is expected to be text into a string.
+ * Nullish values become an empty string so callers can chain string methods.
+ * @param value
+ * @returns {String}
+ */
+
+export function toText(value) {
+    return value === undefined || value === null ? '' : String(value);
+}
