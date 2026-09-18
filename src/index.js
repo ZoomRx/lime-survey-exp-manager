@@ -14,7 +14,7 @@ import {
     SuffixSq
   } from '../src/survey-exp-manager/constants';
 import { EventEmitter } from 'events';
-import { isEmpty } from '../utility/utils'
+import { isEmpty, toText } from '../utility/utils'
 
 import CodeMirror from '../codemirror-5.43.0/lib/codemirror.js';
 import '../codemirror-5.43.0/lib/codemirror.css';
@@ -26,8 +26,23 @@ import '../codemirror-5.43.0/addon/display/placeholder.js';
 // Number of suggestions to show to users when they are in the middle of typing some Identifiers
 // const MAX_SUGGESTIONS_COUNT = 10;
 
+// Identifier, function and rhs suggestion tables are searched independently and can
+// legitimately contain the same name. Consumers render suggestions in keyed lists,
+// where a repeated name is a duplicate-key error, so collapse them here.
+function dedupeByName(suggestions) {
+    var seen = new Set();
+    return suggestions.filter(suggestion => {
+        var key = toText(suggestion.name);
+        if (seen.has(key)) {
+            return false;
+        }
+        seen.add(key);
+        return true;
+    });
+}
+
 function searchSuggestions(baseList = [], searchTerm, results) {
-    searchTerm = searchTerm.toLowerCase();
+    searchTerm = toText(searchTerm).toLowerCase();
     var vars = Object.keys(baseList);
     //T2765
     if (searchTerm.endsWith('.✖')) {
@@ -36,15 +51,18 @@ function searchSuggestions(baseList = [], searchTerm, results) {
     vars.forEach((name/*, index*/) => {
         let item = baseList[name],
             nameLC = name.toLowerCase(),
-            displayFor = item.displayFor && item.displayFor.toLowerCase(),
-            hideFor = item.hideFor && item.hideFor.toLowerCase(),
+            // An empty displayFor/hideFor means "not configured". Without this the
+            // empty string reaches startsWith(), which matches every search term and
+            // permanently hides the item.
+            displayFor = isEmpty(item.displayFor) ? '' : toText(item.displayFor).toLowerCase(),
+            hideFor = isEmpty(item.hideFor) ? '' : toText(item.hideFor).toLowerCase(),
             nameMatches = nameLC.startsWith(searchTerm),
             // Find if the search term has a direct match with the name
             straightMatch = !displayFor && nameMatches,
             // Find if the content in displayFor is present in the searchTerm and has a straight match
-            customMatch = searchTerm.startsWith(displayFor) && nameMatches,
+            customMatch = !!displayFor && searchTerm.startsWith(displayFor) && nameMatches,
             // Find if the content of hideFor is present in the searchTerm
-            forceHide = searchTerm.startsWith(hideFor) || hideFor === `that.${searchTerm}`,
+            forceHide = !!hideFor && (searchTerm.startsWith(hideFor) || hideFor === `that.${searchTerm}`),
             // Check if the item is already fully typed by user
             itemCompleted = (nameLC + (item.appendRight ? item.appendRight : '')) === searchTerm;
 
@@ -218,6 +236,9 @@ function createExpressionManager(config) {
         getSuggestions(searchTerm, type) {
             var validIdentifiers = this.identifiers;
             var results = [];
+            // A `Literal` node carries its parsed value, so this is a number while the
+            // user types a numeric right-hand side. Public callers may pass anything.
+            searchTerm = toText(searchTerm);
             // Acorn parser return name as "✖" when nothing is there. 
             // Replace it with '' to produce search results containing all the items
             if (searchTerm === '✖') {
@@ -235,17 +256,19 @@ function createExpressionManager(config) {
                 ) {
                     return;
                 }
-                searchTerm = searchTerm.toLowerCase().trim();
+                searchTerm = toText(searchTerm).toLowerCase().trim();
                 validIdentifiers[this.lastIdentifier.name].rhsSuggestions
                     .forEach(suggestion => {
-                        let suggestionString = suggestion.name.toLowerCase();
+                        let suggestionName = toText(suggestion.name);
+                        let suggestionDescription = toText(suggestion.description);
+                        let suggestionString = suggestionName.toLowerCase();
                         let suggestionData = {
-                                name: `"${suggestion.name}"`,
+                                name: `"${suggestionName}"`,
                                 description: suggestion.description
                             }
                         if (this.isLastSuffixShown) {
-                            suggestionString = suggestion.description.toLowerCase();
-                            suggestionData = { name: `"${suggestion.description}"` }
+                            suggestionString = suggestionDescription.toLowerCase();
+                            suggestionData = { name: `"${suggestionDescription}"` }
                         }
                         if (!searchTerm 
                             || (
@@ -288,9 +311,10 @@ function createExpressionManager(config) {
                     break;
             }
 
-            const compareNames = (a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+            const compareNames = (a, b) => toText(a.name).toLowerCase().localeCompare(toText(b.name).toLowerCase());
 
             results.sort(compareNames);
+            results = dedupeByName(results);
             this.currentSuggestions = results;
             return results;
         }
@@ -306,7 +330,7 @@ function createExpressionManager(config) {
             }
         }
         updateIndentifier(identifiers) {
-            if (typeof identifiers === 'object') {
+            if (identifiers && typeof identifiers === 'object') {
                 this.identifiers = identifiers;
                 this.changeListener();
             }

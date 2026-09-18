@@ -1,7 +1,7 @@
 import * as Parser from 'acorn-loose/dist/acorn-loose.js';
 
 import * as walk from 'acorn-walk';
-import { isEmpty } from '../../utility/utils'
+import { isEmpty, toText } from '../../utility/utils'
 
 import {
     NUMBER,
@@ -156,7 +156,10 @@ export default function evaluateExpression(expr, validIdentifiers, suffixes, ide
         constructor(node, error = null) {
             let { type, name, start, end } = node;
             if (name === undefined && type === Literal) {
-                name = node.value;
+                // Acorn stores the parsed value of a literal, which is a number for
+                // numeric expressions such as `Q1 == 5`. Keep `name` textual so every
+                // downstream consumer can safely treat it as a string.
+                name = toText(node.value);
             }
 
             if (type === CallExpression) {
